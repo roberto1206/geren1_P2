@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>MayaCode - Soluciones Digitales Empresariales</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+        nav { display:flex; justify-content:space-between; align-items:center; padding:1rem 0; }
+        .logo { font-size:1.8rem; font-weight:bold; color:#667eea; }
+        .nav-links { display:flex; list-style:none; gap:1.5rem; }
+        .nav-links a { text-decoration:none; color:#333; font-weight:500; transition:color .3s; }
+        .nav-links a:hover { color:#667eea; }
+        .cart-icon {
+            position:relative; background:#667eea; color:white; padding:.5rem 1rem; border-radius:25px;
+            text-decoration:none; transition:transform .3s; display:inline-flex; gap:.5rem; align-items:center;
+        }
+        .cart-icon:hover { transform:scale(1.05); }
+        .cart-count {
+            position:absolute; top:-6px; right:-6px; background:#e74c3c; color:white; border-radius:50%;
+            width:20px; height:20px; font-size:.8rem; display:flex; align-items:center; justify-content:center;
+        }
+
+        /* Hero */
+        .hero { margin-top:80px; padding:4rem 0; text-align:center; color:white; }
+        .hero h1 { font-size:3rem; margin-bottom:1rem; text-shadow:2px 2px 4px rgba(0,0,0,.3); }
+        .hero p { font-size:1.1rem; margin-bottom:1.5rem; opacity:.95; }
+        .cta-button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52); color:white; padding:1rem 2rem; border:none;
+            border-radius:30px; font-size:1.05rem; cursor:pointer; text-decoration:none; display:inline-block;
+        }
+        .cta-button:hover { transform:translateY(-3px); box-shadow:0 10px 25px rgba(0,0,0,.15); }
+
+        /* Products */
+        .products-section { background:white; padding:3.5rem 0; border-top-left-radius:20px; border-top-right-radius:20px; margin-top: -30px; }
+        .section-title { text-align:center; font-size:2rem; margin-bottom:2rem; color:#333; }
+        .products-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1.25rem; }
+
+        .product-card {
+            background:white; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.08); overflow:hidden;
+            transition:transform .25s, box-shadow .25s; border:1px solid #ededed;
+        }
+        .product-card:hover { transform:translateY(-6px); box-shadow:0 18px 40px rgba(0,0,0,.12); }
+        .product-image { height:160px; background: linear-gradient(45deg, #667eea, #764ba2); display:flex; align-items:center; justify-content:center; font-size:3rem; color:white; }
+        .product-info { padding:1rem 1.2rem; }
+        .product-title { font-size:1.1rem; font-weight:700; margin-bottom:.4rem; color:#333; }
+        .product-description { color:#666; margin-bottom:.8rem; font-size:.95rem; }
+        .product-features { list-style:none; margin-bottom:.8rem; color:#555; }
+        .product-features li { padding:.2rem 0; }
+        .product-features li:before { content:"✓"; color:#27ae60; margin-right:.5rem; font-weight:700; }
+        .product-price { font-size:1.2rem; font-weight:700; color:#667eea; margin-bottom:.6rem; }
+        .add-to-cart { width:100%; background:#667eea; color:white; padding:.55rem; border:none; border-radius:8px; font-size:1rem; cursor:pointer; }
+        .add-to-cart:hover { background:#5a6fd8; }
+
+        /* Cart Sidebar */
+        .cart-sidebar {
+            position:fixed; right:-420px; top:0; width:420px; height:100vh; background:white; box-shadow:-6px 0 20px rgba(0,0,0,.1);
+            transition:right .28s; z-index:1001; overflow-y:auto;
+        }
+        .cart-sidebar.active { right:0; }
+        .cart-header { padding:1.5rem; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; }
+        .close-cart { background:none; border:none; font-size:1.4rem; cursor:pointer; color:#666; }
+        .cart-items { padding:1rem; }
+        .cart-item { display:flex; gap:.75rem; justify-content:space-between; align-items:center; padding:.9rem 0; border-bottom:1px solid #f0f0f0; }
+        .cart-item-info { flex:1; }
+        .cart-item-title { font-weight:700; margin-bottom:.35rem; }
+        .cart-item-price { color:#667eea; font-weight:700; margin-bottom:.4rem; }
+        .quantity-controls { display:flex; align-items:center; gap:.5rem; margin:.3rem 0; }
+        .quantity-btn { background:#f4f4f4; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer; }
+        .remove-item { background:#e74c3c; color:white; border:none; padding:.3rem .7rem; border-radius:12px; cursor:pointer; font-size:.85rem; }
+
+        .cart-total { padding:1.2rem; border-top:2px solid #667eea; text-align:center; }
+        .total-amount { font-size:1.2rem; font-weight:700; color:#667eea; margin-bottom:.6rem; }
+        .checkout-btn { width:100%; background: linear-gradient(45deg,#ff6b6b,#ee5a52); color:white; padding:.85rem; border:none; border-radius:10px; font-size:1.05rem; cursor:pointer; }
+        .checkout-btn:hover { transform:translateY(-2px); }
+
+        .empty-cart { text-align:center; padding:2rem 1rem; color:#666; }
+
+        /* Overlay */
+        .overlay {
+            position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.5); z-index:1000;
+            opacity:0; visibility:hidden; transition:all .25s;
+        }
+        .overlay.active { opacity:1; visibility:visible; }
+
+        /* Modals */
+        .success-modal {
+            position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(.6); background:white; padding:2.2rem; border-radius:12px;
+            box-shadow:0 20px 40px rgba(0,0,0,.2); text-align:center; z-index:1002; opacity:0; transition:all .25s; min-width:280px;
+        }
+        .success-modal.active { transform:translate(-50%,-50%) scale(1); opacity:1; }
+        .success-icon { font-size:3rem; color:#27ae60; margin-bottom:.6rem; }
+
+        /* Payment modal */
+        .payment-modal {
+            position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(.85); background:white; padding:1.25rem; border-radius:12px;
+            box-shadow:0 20px 40px rgba(0,0,0,.25); z-index:1002; min-width:320px; max-width:420px; opacity:0; transition:all .2s;
+        }
+        .payment-modal.active { transform:translate(-50%,-50%) scale(1); opacity:1; }
+        .payment-modal h3 { margin-bottom:.6rem; color:#333; }
+        .small-note { font-size:.9rem; color:#666; margin-bottom:.8rem; }
+
+        .form-row { display:flex; gap:.6rem; margin-bottom:.6rem; }
+        .form-group { display:flex; flex-direction:column; gap:.25rem; flex:1; }
+        label { font-size:.88rem; color:#333; }
+        input[type="text"], input[type="email"], input[type="password"] {
+            padding:.6rem .7rem; border-radius:8px; border:1px solid #ddd; font-size:1rem;
+        }
+        .pay-btn { width:100%; background:#27ae60; color:white; padding:.7rem; border:none; border-radius:8px; cursor:pointer; font-size:1rem; }
+        .pay-btn[disabled] { opacity:.6; cursor:not-allowed; }
+        .btn-inline { padding:.55rem .8rem; border-radius:8px; border:none; cursor:pointer; }
+        .cancel-btn { background:#f0f0f0; }
+
+        .error { color:#e74c3c; font-size:.85rem; margin-top:.25rem; display:none; }
+
+        /* Contacto */
+        #contacto { padding:2.5rem 0; color:#fff; }
+        .contact-card { background:rgba(255,255,255,.06); padding:1rem; border-radius:10px; max-width:700px; margin:0 auto; box-shadow:0 6px 18px rgba(0,0,0,.12); }
+        .contact-row { display:flex; gap:1rem; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+        .contact-item { color:#fff; font-size:1rem; }
+        .contact-item b { color:#fff; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links { display:none; }
+            .hero h1 { font-size:2rem; }
+            .cart-sidebar { width:100%; right:-100%; }
+            .product-image { height:140px; font-size:2.6rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- NOTA: Este archivo es una demo. NO envíes datos reales de tarjeta aquí en producción. -->
+    <div class="overlay" id="overlay" aria-hidden="true"></div>
+
+    <!-- Header -->
+    <header>
+        <nav class="container">
+            <div class="logo">MayaCode</div>
+            <ul class="nav-links">
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#productos">Productos</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+            </ul>
+            <a href="#" class="cart-icon" id="cartToggle" aria-label="Abrir carrito">
+                🛒 <span style="font-weight:700">Carrito</span>
+                <span class="cart-count" id="cartCount">0</span>
+            </a>
+        </nav>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero" id="inicio">
+        <div class="container">
+            <h1>Soluciones Digitales Empresariales</h1>
+            <p>Potencia tu negocio con nuestros productos de software innovadores y escalables.</p>
+            <a href="#productos" class="cta-button">Ver Productos</a>
+        </div>
+    </section>
+
+    <!-- Products -->
+    <section class="products-section" id="productos">
+        <div class="container">
+            <h2 class="section-title">Nuestros Productos</h2>
+            <div class="products-grid">
+                <!-- Producto 1 -->
+                <div class="product-card">
+                    <div class="product-image">📊</div>
+                    <div class="product-info">
+                        <h3 class="product-title">ERP Snippets</h3>
+                        <p class="product-description">Módulos empresariales pre-configurados para optimizar la gestión de recursos de tu empresa.</p>
+                        <ul class="product-features">
+                            <li>Gestión de inventario en tiempo real</li>
+                            <li>Módulos contables integrados</li>
+                            <li>Reportes automatizados</li>
+                        </ul>
+                        <div class="product-price">Q 2,500.00</div>
+                        <button class="add-to-cart" onclick="addToCart(1,'ERP Snippets',2500,'📊')">Agregar al Carrito</button>
+                    </div>
+                </div>
+
+                <!-- Producto 2 -->
+                <div class="product-card">
+                    <div class="product-image">🌐</div>
+                    <div class="product-info">
+                        <h3 class="product-title">Web Development Toolkit</h3>
+                        <p class="product-description">Kit de herramientas y templates para desarrollo web profesional.</p>
+                        <ul class="product-features">
+                            <li>Templates responsivos premium</li>
+                            <li>Componentes UI reutilizables</li>
+                            <li>Integración API sencilla</li>
+                        </ul>
+                        <div class="product-price">Q 1,800.00</div>
+                        <button class="add-to-cart" onclick="addToCart(2,'Web Development Toolkit',1800,'🌐')">Agregar al Carrito</button>
+                    </div>
+                </div>
+
+                <!-- Producto 3 -->
+                <div class="product-card">
+                    <div class="product-image">📱</div>
+                    <div class="product-info">
+                        <h3 class="product-title">Mobile App Builder</h3>
+                        <p class="product-description">Constructor visual de apps nativas con componentes preconstruidos.</p>
+                        <ul class="product-features">
+                            <li>Desarrollo sin código</li>
+                            <li>Apps nativas iOS/Android</li>
+                            <li>Deploy automático</li>
+                        </ul>
+                        <div class="product-price">Q 3,200.00</div>
+                        <button class="add-to-cart" onclick="addToCart(3,'Mobile App Builder',3200,'📱')">Agregar al Carrito</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar" aria-hidden="true">
+        <div class="cart-header">
+            <h2>Mi Carrito</h2>
+            <button class="close-cart" onclick="closeCart()" aria-label="Cerrar carrito">&times;</button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <div class="empty-cart">
+                <p>Tu carrito está vacío</p>
+                <p>¡Agrega algunos productos!</p>
+            </div>
+        </div>
+        <div class="cart-total" id="cartTotal" style="display:none;">
+            <div class="total-amount">Total: Q <span id="totalAmount">0.00</span></div>
+            <button class="checkout-btn" onclick="openPaymentModal()">Proceder al Pago</button>
+        </div>
+    </div>
+
+    <!-- Payment Modal (demo) -->
+    <div class="payment-modal" id="paymentModal" role="dialog" aria-modal="true" aria-labelledby="paymentTitle" style="display:none;">
+        <h3 id="paymentTitle">Pago Seguro - Demo</h3>
+        <div class="small-note">Esto es una demostración. <strong>NO</strong> envíes datos reales en este sitio. Usa una pasarela de pago en producción.</div>
+
+        <div id="orderSummary" style="margin-bottom:.6rem; font-weight:700;">Orden: Q <span id="payAmount">0.00</span></div>
+
+        <form id="paymentForm" onsubmit="event.preventDefault(); processPayment();">
+            <div class="form-group" style="margin-bottom:.6rem;">
+                <label for="cardName">Nombre en la tarjeta</label>
+                <input id="cardName" type="text" autocomplete="cc-name" placeholder="Nombre completo" required />
+                <div class="error" id="errName">Ingresa el nombre que aparece en la tarjeta.</div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:.6rem;">
+                <label for="cardNumber">Número de tarjeta</label>
+                <input id="cardNumber" type="text" inputmode="numeric" autocomplete="cc-number" placeholder="1234 5678 9012 3456" maxlength="19" required />
+                <div class="error" id="errCard">Número inválido.</div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="cardExp">Expiración (MM/AA)</label>
+                    <input id="cardExp" type="text" placeholder="MM/AA" maxlength="5" required />
+                    <div class="error" id="errExp">Fecha inválida o vencida.</div>
+                </div>
+                <div class="form-group">
+                    <label for="cardCvc">CVC</label>
+                    <input id="cardCvc" type="password" inputmode="numeric" maxlength="4" placeholder="123" required />
+                    <div class="error" id="errCvc">CVC inválido.</div>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:.6rem;">
+                <label for="receiptEmail">Email para recibo</label>
+                <input id="receiptEmail" type="email" autocomplete="email" placeholder="tu@correo.com" required />
+                <div class="error" id="errEmail">Email inválido.</div>
+            </div>
+
+            <div style="display:flex; gap:.6rem; margin-top:.6rem;">
+                <button type="button" class="btn-inline cancel-btn" onclick="closePaymentModal()">Cancelar</button>
+                <button id="payBtn" type="submit" class="pay-btn">Pagar ahora</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="success-modal" id="successModal" role="dialog" aria-modal="true" aria-labelledby="successTitle" style="display:none;">
+        <div class="success-icon">✅</div>
+        <h2 id="successTitle">¡Compra Exitosa!</h2>
+        <p id="successText">Gracias por tu compra. En breve recibirás un email con los detalles.</p>
+        <p><strong>Total pagado: Q <span id="finalAmount">0.00</span></strong></p>
+        <button class="cta-button" onclick="closeModal()" style="margin-top:1rem;">Continuar</button>
+    </div>
+
+    <!-- Contacto -->
+    <section id="contacto">
+        <div class="container">
+            <h2 style="color:#fff; text-align:center; margin-bottom:1rem;">Contacto</h2>
+
+            <div class="contact-card">
+                <!-- El contenido se rellena desde el objeto contactInfo en el script.
+                     Cambia SOLO el objeto contactInfo (más abajo) para actualizar esta sección. -->
+                <div id="contactContent" class="contact-row"></div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        /*************************************************************************
+         * DATOS DE CONTACTO
+         * Edita SOLO las propiedades de contactInfo para cambiar la información
+         * que aparece en la sección CONTACTO.
+         *************************************************************************/
+        const contactInfo = {
+            company: "MayaCode - Soluciones Digitales",
+            address: "4a Avenida 10-20, Zona 1, Ciudad de Guatemala",
+            phone: "+502 5012 3456",
+            email: "contacto@mayacode.gt",
+            horario: "Lun - Vie: 08:00 - 17:00"
+        };
+
+        // Rellenar sección de contacto (fácil de editar desde arriba)
+        function renderContact() {
+            const c = document.getElementById('contactContent');
+            c.innerHTML = `
+                <div class="contact-item"><b>Empresa:</b> ${contactInfo.company}</div>
+                <div class="contact-item"><b>Dirección:</b> ${contactInfo.address}</div>
+                <div class="contact-item"><b>Teléfono:</b> ${contactInfo.phone}</div>
+                <div class="contact-item"><b>Email:</b> <a href="mailto:${contactInfo.email}" style="color:#fff; text-decoration:underline;">${contactInfo.email}</a></div>
+                <div class="contact-item"><b>Horario:</b> ${contactInfo.horario}</div>
+            `;
+        }
+
+        /*************************************************************************
+         * Carrito y Lógica principal
+         *************************************************************************/
+        let cart = [];
+        let cartCount = 0;
+
+        function addToCart(id, name, price, icon) {
+            const existingItem = cart.find(item => item.id === id);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ id, name, price, icon, quantity: 1 });
+            }
+            updateCartDisplay();
+            showCartNotification();
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(item => item.id !== id);
+            updateCartDisplay();
+        }
+
+        function updateQuantity(id, change) {
+            const item = cart.find(item => item.id === id);
+            if (!item) return;
+            item.quantity += change;
+            if (item.quantity <= 0) removeFromCart(id);
+            else updateCartDisplay();
+        }
+
+        function updateCartDisplay() {
+            cartCount = cart.reduce((t, item) => t + item.quantity, 0);
+            document.getElementById('cartCount').textContent = cartCount;
+
+            const cartItems = document.getElementById('cartItems');
+            const cartTotal = document.getElementById('cartTotal');
+
+            if (cart.length === 0) {
+                cartItems.innerHTML = `
+                    <div class="empty-cart">
+                        <p>Tu carrito está vacío</p>
+                        <p>¡Agrega algunos productos!</p>
+                    </div>
+                `;
+                cartTotal.style.display = 'none';
+            } else {
+                let itemsHTML = '';
+                let total = 0;
+                cart.forEach(item => {
+                    const itemTotal = item.price * item.quantity;
+                    total += itemTotal;
+                    itemsHTML += `
+                        <div class="cart-item">
+                            <div class="cart-item-info">
+                                <div class="cart-item-title">${item.icon} ${item.name}</div>
+                                <div class="cart-item-price">Q ${item.price.toLocaleString()}</div>
+                                <div class="quantity-controls">
+                                    <button class="quantity-btn" onclick="updateQuantity(${item.id}, -1)">-</button>
+                                    <span>${item.quantity}</span>
+                                    <button class="quantity-btn" onclick="updateQuantity(${item.id}, 1)">+</button>
+                                </div>
+                            </div>
+                            <button class="remove-item" onclick="removeFromCart(${item.id})">Eliminar</button>
+                        </div>
+                    `;
+                });
+                cartItems.innerHTML = itemsHTML;
+                document.getElementById('totalAmount').textContent = total.toLocaleString();
+                cartTotal.style.display = 'block';
+            }
+        }
+
+        // Abrir / cerrar carrito
+        function toggleCart() {
+            const cartSidebar = document.getElementById('cartSidebar');
+            const overlay = document.getElementById('overlay');
+            cartSidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+        function closeCart() {
+            const cartSidebar = document.getElementById('cartSidebar');
+            const overlay = document.getElementById('overlay');
+            cartSidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        }
+
+        // Efecto visual al agregar producto
+        function showCartNotification() {
+            const cartIcon = document.getElementById('cartToggle');
+            cartIcon.style.transform = 'scale(1.15)';
+            setTimeout(() => cartIcon.style.transform = 'scale(1)', 180);
+        }
+
+        // Event listeners para abrir carrito desde icono
+        document.getElementById('cartToggle').addEventListener('click', function(e) {
+            e.preventDefault();
+            toggleCart();
+        });
+
+        // Overlay: clic cierra modals y carrito
+        document.getElementById('overlay').addEventListener('click', function() {
+            closePaymentModal();
+            closeCart();
+            closeModal();
+        });
+
+        // Smooth scroll nav links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+        /*************************************************************************
+         * Pago (demo). NO enviar datos a un servidor real aquí.
+         *************************************************************************/
+        const paymentModal = document.getElementById('paymentModal');
+        const overlay = document.getElementById('overlay');
+
+        function openPaymentModal() {
+            if (cart.length === 0) return;
+            const total = cart.reduce((s,item) => s + (item.price * item.quantity), 0);
+            document.getElementById('payAmount').textContent = total.toLocaleString();
+            paymentModal.style.display = 'block';
+            setTimeout(()=> paymentModal.classList.add('active'), 10);
+            overlay.classList.add('active');
+            // scroll to top of modal for mobile
+            paymentModal.scrollIntoView({behavior:'smooth', block:'center'});
+        }
+
+        function closePaymentModal() {
+            paymentModal.classList.remove('active');
+            overlay.classList.remove('active');
+            setTimeout(()=> paymentModal.style.display = 'none', 200);
+        }
+
+        // Validaciones simples + Luhn
+        function sanitizeNumber(str) {
+            return (str || '').replace(/\D/g,'');
+        }
+
+        function luhnCheck(num) {
+            // num: string of digits
+            let sum = 0;
+            let shouldDouble = false;
+            for (let i = num.length - 1; i >= 0; i--) {
+                let digit = parseInt(num.charAt(i), 10);
+                if (shouldDouble) {
+                    digit *= 2;
+                    if (digit > 9) digit -= 9;
+                }
+                sum += digit;
+                shouldDouble = !shouldDouble;
+            }
+            return (sum % 10) === 0;
+        }
+
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function validateExpiry(exp) {
+            // format MM/YY or MM/YY with slash
+            const parts = exp.split('/');
+            if (parts.length !== 2) return false;
+            let mm = parseInt(parts[0], 10);
+            let yy = parseInt(parts[1], 10);
+            if (isNaN(mm) || isNaN(yy)) return false;
+            if (mm < 1 || mm > 12) return false;
+            // convertir a año 2000+
+            const current = new Date();
+            const fullYear = (yy < 100) ? (2000 + yy) : yy;
+            const expiry = new Date(fullYear, mm); // primer día del mes siguiente
+            // si expiry <= now -> inválida
+            return expiry > current;
+        }
+
+        function maskCard(num) {
+            const s = sanitizeNumber(num);
+            if (s.length <= 4) return '****';
+            return '**** **** **** ' + s.slice(-4);
+        }
+
+        function showFormError(id, show) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.style.display = show ? 'block' : 'none';
+        }
+
+        // Procesar pago (simulado). No envía nada a servidor.
+        function processPayment() {
+            // obtener valores
+            const name = document.getElementById('cardName').value.trim();
+            const numberRaw = document.getElementById('cardNumber').value;
+            const number = sanitizeNumber(numberRaw);
+            const exp = document.getElementById('cardExp').value.trim();
+            const cvc = document.getElementById('cardCvc').value.trim();
+            const email = document.getElementById('receiptEmail').value.trim();
+
+            // reset errores
+            ['errName','errCard','errExp','errCvc','errEmail'].forEach(id => showFormError(id,false));
+
+            let ok = true;
+            if (!name) { showFormError('errName', true); ok = false; }
+            if (number.length < 13 || number.length > 19 || !luhnCheck(number)) { showFormError('errCard', true); ok = false; }
+            if (!validateExpiry(exp)) { showFormError('errExp', true); ok = false; }
+            if (!/^\d{3,4}$/.test(cvc)) { showFormError('errCvc', true); ok = false; }
+            if (!validateEmail(email)) { showFormError('errEmail', true); ok = false; }
+
+            if (!ok) return;
+
+            // Simular procesamiento (en producción usar pasarela)
+            const payBtn = document.getElementById('payBtn');
+            payBtn.disabled = true;
+            payBtn.textContent = 'Procesando...';
+
+            setTimeout(() => {
+                // simular éxito
+                const total = cart.reduce((s,item) => s + (item.price * item.quantity), 0);
+                document.getElementById('finalAmount').textContent = total.toLocaleString();
+                const last4 = sanitizeNumber(number).slice(-4);
+                document.getElementById('successText').textContent = `Pago realizado con tarjeta ${maskCard(number)}. Se envió comprobante a ${email}.`;
+                // limpiar carrito
+                cart = [];
+                updateCartDisplay();
+
+                // cerrar payment modal y abrir success modal
+                closePaymentModal();
+                openSuccessModal();
+
+                // reset botones y form
+                payBtn.disabled = false;
+                payBtn.textContent = 'Pagar ahora';
+                document.getElementById('paymentForm').reset();
+            }, 1000);
+        }
+
+        /*************************************************************************
+         * Success modal
+         *************************************************************************/
+        function openSuccessModal() {
+            const modal = document.getElementById('successModal');
+            modal.style.display = 'block';
+            setTimeout(()=> modal.classList.add('active'), 10);
+            overlay.classList.add('active');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('successModal');
+            modal.classList.remove('active');
+            overlay.classList.remove('active');
+            setTimeout(()=> modal.style.display = 'none', 200);
+        }
+
+        /*************************************************************************
+         * Inicializar página
+         *************************************************************************/
+        renderContact();
+        updateCartDisplay();
+
+        // Pequeña mejora UX: formatea número de tarjeta al escribir (agrupa cada 4 dígitos)
+        document.getElementById('cardNumber').addEventListener('input', function(e){
+            let v = this.value.replace(/\D/g,'').slice(0,19);
+            let parts = [];
+            for (let i=0;i<v.length;i+=4) parts.push(v.substring(i,i+4));
+            this.value = parts.join(' ');
+        });
+
+        // Formato expiración MM/YY al escribir
+        document.getElementById('cardExp').addEventListener('input', function(){
+            let v = this.value.replace(/\D/g,'').slice(0,4);
+            if (v.length >= 3) this.value = v.slice(0,2) + '/' + v.slice(2);
+            else if (v.length >= 1) this.value = v;
+        });
+    </script>
+</body>
+</html>
